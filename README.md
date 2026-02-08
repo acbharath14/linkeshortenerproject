@@ -115,7 +115,38 @@ git rm --cached .env .env.local
 
 This project uses Drizzle ORM. The schema is defined in `db/schema.ts`, and migrations are stored in `drizzle/`.
 
-Use Drizzle Kit (see `drizzle.config.ts`) or your preferred migration workflow to apply the schema before running the app.
+**Option A: Push schema directly (recommended for development)**
+
+```bash
+pnpm drizzle-kit push
+```
+
+This pushes the schema from `db/schema.ts` directly to your database without generating migration files.
+
+**Option B: Generate and apply migrations (recommended for production)**
+
+```bash
+# Generate migration files from schema
+pnpm drizzle-kit generate
+
+# Apply migrations to database
+pnpm drizzle-kit migrate
+```
+
+**Option C: Use existing migrations**
+
+If migrations already exist in `drizzle/`, apply them:
+
+```bash
+pnpm drizzle-kit migrate
+```
+
+**Verify schema:**
+
+```bash
+# Open Drizzle Studio to inspect your database
+pnpm drizzle-kit studio
+```
 
 ### 5) Start the Dev Server
 
