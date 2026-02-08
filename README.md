@@ -254,6 +254,8 @@ This discipline ensures long-term sustainability and prevents low-quality, gener
 <img width="3840" height="2088" alt="image" src="https://github.com/user-attachments/assets/0a95388d-44f1-464c-a26e-7105aa3a37b2" />
 <img width="3840" height="2088" alt="image" src="https://github.com/user-attachments/assets/6e4af945-5fb8-4b19-bb00-8f53485b7299" />
 <img width="3840" height="2088" alt="image" src="https://github.com/user-attachments/assets/a980f669-b018-40e1-96b6-c5530419b02d" />
+<img width="3840" height="2088" alt="image" src="https://github.com/user-attachments/assets/7b753537-c80f-433c-94e7-8032f0c2a6e7" />
+
 
 
 
