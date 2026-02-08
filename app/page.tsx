@@ -1,6 +1,30 @@
+"use client";
+
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useUser } from "@clerk/nextjs";
 import { Link2, Zap, BarChart3, Shield, Globe, Smartphone } from "lucide-react";
 
 export default function Home() {
+  const { isLoaded, isSignedIn } = useUser();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (isLoaded && isSignedIn) {
+      router.push("/dashboard");
+    }
+  }, [isLoaded, isSignedIn, router]);
+
+  // Show nothing while checking authentication
+  if (!isLoaded) {
+    return null;
+  }
+
+  // If signed in, redirect will happen (show nothing)
+  if (isSignedIn) {
+    return null;
+  }
+
   return (
     <div className="min-h-screen bg-background">
       {/* Hero Section */}
