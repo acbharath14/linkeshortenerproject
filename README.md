@@ -248,3 +248,14 @@ This discipline ensures long-term sustainability and prevents low-quality, gener
 3. Commit your changes
 4. Open a pull request
 
+## Sample App Images
+<img width="3840" height="2088" alt="image" src="https://github.com/user-attachments/assets/8d17856b-be49-46f5-acbc-0f8daf1de4d6" />
+<img width="3840" height="2088" alt="image" src="https://github.com/user-attachments/assets/5cb9ac26-be6b-4b9d-8ee6-596ac1f7c60a" />
+<img width="3840" height="2088" alt="image" src="https://github.com/user-attachments/assets/0a95388d-44f1-464c-a26e-7105aa3a37b2" />
+<img width="3840" height="2088" alt="image" src="https://github.com/user-attachments/assets/6e4af945-5fb8-4b19-bb00-8f53485b7299" />
+<img width="3840" height="2088" alt="image" src="https://github.com/user-attachments/assets/a980f669-b018-40e1-96b6-c5530419b02d" />
+
+
+
+
+
