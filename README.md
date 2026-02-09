@@ -68,8 +68,8 @@ Stored in PostgreSQL via Drizzle schema in `db/schema.ts`:
 
 ```bash
 # Fork on GitHub, then clone your fork
-git clone https://github.com/<your-username>/linkeshortenerproject.git
-cd linkeshortenerproject
+git clone https://github.com/<your-username>/linkshortenerproject.git
+cd linkshortenerproject
 ```
 
 ### 2) Install Dependencies
