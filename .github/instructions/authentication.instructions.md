@@ -10,24 +10,23 @@ applyTo: **/*.ts, **/*.tsx
 
 ## Required Implementation
 
-### Middleware Setup
-- Create `middleware.ts` in the root `app/` directory
+### Clerk Proxy Setup
+- Use `proxy.ts` in the root directory for Clerk authentication proxy (latest Clerk approach)
 - Import and use `clerkMiddleware()` from `@clerk/nextjs/server`
-- Configure protected routes using the middleware
+- Configure matcher to intercept necessary routes
 - Example:
   ```typescript
-  import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
-  
-  const isProtectedRoute = createRouteMatcher(['/dashboard(.*)']);
-  
-  export default clerkMiddleware((auth, req) => {
-    if (isProtectedRoute(req)) {
-      auth().protect();
-    }
-  });
-  
+  import { clerkMiddleware } from '@clerk/nextjs/server';
+
+  export default clerkMiddleware();
+
   export const config = {
-    matcher: ['/((?!_next|static|.*\\.png).*)'],
+    matcher: [
+      // Skip Next.js internals and all static files, unless found in search params
+      '/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)',
+      // Always run for API routes
+      '/(api|trpc)(.*)',
+    ],
   };
   ```
 
@@ -65,7 +64,7 @@ applyTo: **/*.ts, **/*.tsx
   ```
 
 ## Prohibited
-- Do not use `authMiddleware` or `withAuth` (deprecated)
+- Do not use `authMiddleware`, `withAuth`, or `middleware.ts` for Clerk authentication (deprecated patterns)
 - Do not use Pages Router or `_app.tsx`
 - Do not hardcode or log secrets in code
 - **Do not implement any alternative authentication methods**
@@ -80,4 +79,5 @@ applyTo: **/*.ts, **/*.tsx
 
 ## References
 - [Clerk Next.js Documentation](https://clerk.com/docs/quickstarts/nextjs)
+- [Clerk Proxy Setup](https://clerk.com/docs/references/nextjs/auth-object)
 - [Clerk App Router Guide](https://clerk.com/docs/references/nextjs/overview)

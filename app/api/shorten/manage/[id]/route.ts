@@ -1,6 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { getLinkById, getLinkByIdAndUserId, deactivateLinkById } from "@/data/links-db";
+import {
+  apiSuccess,
+  apiUnauthorized,
+  apiNotFound,
+  apiForbidden,
+  apiInternalError,
+} from "@/lib/api-response";
+import { withCorsHeaders, handleCorsPreFlight } from "@/lib/cors";
 
 export async function DELETE(
   request: NextRequest,
@@ -10,7 +18,7 @@ export async function DELETE(
     const { userId } = await auth();
 
     if (!userId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return withCorsHeaders(request, apiUnauthorized("Authentication required"));
     }
 
     const { id } = await params;
@@ -19,33 +27,26 @@ export async function DELETE(
     const url = await getLinkById(id);
 
     if (!url) {
-      return NextResponse.json(
-        { error: "Shortened URL not found" },
-        { status: 404 }
-      );
+      return withCorsHeaders(request, apiNotFound("Shortened URL not found"));
     }
 
     // Verify the URL belongs to the current user
     if (url.userId !== userId) {
-      return NextResponse.json(
-        { error: "Forbidden - this URL does not belong to you" },
-        { status: 403 }
+      return withCorsHeaders(
+        request,
+        apiForbidden("This URL does not belong to you")
       );
     }
 
     // Soft delete by marking as inactive using helper
     await deactivateLinkById(id, userId);
 
-    return NextResponse.json(
-      { success: true, message: "URL deleted successfully" },
-      { status: 200 }
-    );
+    const response = apiSuccess({ message: "URL deleted successfully" });
+    return withCorsHeaders(request, response);
   } catch (error) {
     console.error("Delete API error:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    const response = apiInternalError("Internal server error");
+    return withCorsHeaders(request, response);
   }
 }
 
@@ -57,7 +58,7 @@ export async function GET(
     const { userId } = await auth();
 
     if (!userId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return withCorsHeaders(request, apiUnauthorized("Authentication required"));
     }
 
     const { id } = await params;
@@ -66,21 +67,18 @@ export async function GET(
     const url = await getLinkByIdAndUserId(id, userId);
 
     if (!url) {
-      return NextResponse.json(
-        { error: "Shortened URL not found or access denied" },
-        { status: 404 }
-      );
+      return withCorsHeaders(request, apiNotFound("Shortened URL not found or access denied"));
     }
 
-    return NextResponse.json(
-      { success: true, data: url },
-      { status: 200 }
-    );
+    const response = apiSuccess(url);
+    return withCorsHeaders(request, response);
   } catch (error) {
     console.error("Get URL details API error:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    const response = apiInternalError("Internal server error");
+    return withCorsHeaders(request, response);
   }
+}
+
+export async function OPTIONS(request: NextRequest) {
+  return handleCorsPreFlight(request);
 }

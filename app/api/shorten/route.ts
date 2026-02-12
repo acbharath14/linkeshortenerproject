@@ -3,6 +3,15 @@ import { auth } from "@clerk/nextjs/server";
 import { getUserLinks, createLink, checkCustomAliasExists, checkShortCodeExists } from "@/data/links-db";
 import { z } from 'zod';
 import { rateLimiter } from "@/lib/rate-limit";
+import { 
+  apiSuccess, 
+  apiBadRequest, 
+  apiUnauthorized, 
+  apiConflict, 
+  apiTooManyRequests,
+  apiInternalError 
+} from "@/lib/api-response";
+import { withCorsHeaders, handleCorsPreFlight } from "@/lib/cors";
 
 const CreateLinkSchema = z.object({
   originalUrl: z.string().url("Invalid URL format"),
@@ -46,25 +55,22 @@ export async function POST(request: NextRequest) {
     const { success } = await rateLimiter.limit(ip);
     
     if (!success) {
-      return NextResponse.json(
-        { error: "Too many requests. Please try again later." },
-        { status: 429 }
-      );
+      return withCorsHeaders(request, apiTooManyRequests("Too many requests. Please try again later."));
     }
 
     const { userId } = await auth();
 
     if (!userId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return withCorsHeaders(request, apiUnauthorized("Authentication required"));
     }
 
     const body = await request.json();
     
     const validation = CreateLinkSchema.safeParse(body);
     if (!validation.success) {
-      return NextResponse.json(
-        { error: validation.error.issues[0].message },
-        { status: 400 }
+      return withCorsHeaders(
+        request, 
+        apiBadRequest(validation.error.issues[0].message)
       );
     }
     const { originalUrl, customAlias, description, expiresAt } = validation.data;
@@ -77,9 +83,9 @@ export async function POST(request: NextRequest) {
       const aliasExists = await checkCustomAliasExists(normalizedAlias);
 
       if (aliasExists) {
-        return NextResponse.json(
-          { error: "Custom alias already in use" },
-          { status: 409 }
+        return withCorsHeaders(
+          request,
+          apiConflict("Custom alias already in use")
         );
       }
     }
@@ -99,7 +105,6 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Create the shortened URL record using helper
     const newUrl = await createLink(
       userId,
       originalUrl,
@@ -108,21 +113,20 @@ export async function POST(request: NextRequest) {
       description
     );
 
-    return NextResponse.json(
+    const response = apiSuccess(
       {
-        success: true,
-        data: newUrl,
+        ...newUrl,
         shortUrl: `${process.env.NEXT_PUBLIC_APP_URL}/l/${shortCode}`,
       },
-      { status: 201 }
+      201
     );
+
+    return withCorsHeaders(request, response);
   } catch (error) {
     // Log detailed error server-side only
     console.error("API error:", error);
-    return NextResponse.json(
-      { error: "An error occurred while processing your request" },
-      { status: 500 }
-    );
+    const response = apiInternalError("An error occurred while processing your request");
+    return withCorsHeaders(request, response);
   }
 }
 
@@ -131,13 +135,14 @@ export async function GET(request: NextRequest) {
     const { userId } = await auth();
 
     if (!userId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return withCorsHeaders(request, apiUnauthorized("Authentication required"));
     }
 
     // Get all URLs for the current user using helper
     const urls = await getUserLinks(userId);
 
-    return NextResponse.json({ success: true, data: urls }, { status: 200 });
+    const response = apiSuccess({ data: urls });
+    return withCorsHeaders(request, response);
   } catch (error) {
     // Log detailed error server-side only
     console.error("API error:", error);

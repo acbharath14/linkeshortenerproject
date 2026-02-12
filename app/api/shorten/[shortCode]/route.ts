@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getLinkByCode, incrementClicks } from "@/data/links-db";
+import { apiSuccess, apiNotFound, apiInternalError } from "@/lib/api-response";
+import { withCorsHeaders, handleCorsPreFlight } from "@/lib/cors";
 
 export async function GET(
   request: NextRequest,
@@ -12,45 +14,35 @@ export async function GET(
     const url = await getLinkByCode(shortCode);
 
     if (!url) {
-      return NextResponse.json(
-        { error: "Shortened URL not found" },
-        { status: 404 }
-      );
+      return withCorsHeaders(request, apiNotFound("Shortened URL not found"));
     }
 
     // Check if URL is active
     if (!url.isActive) {
-      return NextResponse.json(
-        { error: "This link has been disabled" },
-        { status: 410 }
-      );
+      return withCorsHeaders(request, apiNotFound("This link has been disabled"));
     }
 
     // Check if URL has expired
     if (url.expiresAt && new Date() > new Date(url.expiresAt)) {
-      return NextResponse.json(
-        { error: "This link has expired" },
-        { status: 410 }
-      );
+      return withCorsHeaders(request, apiNotFound("This link has expired"));
     }
 
     // Increment click count using helper
     await incrementClicks(shortCode);
 
     // Return the original URL (client will handle redirect or return as data)
-    return NextResponse.json(
-      {
-        success: true,
-        originalUrl: url.originalUrl,
-        shortCode: url.shortCode,
-      },
-      { status: 200 }
-    );
+    const response = apiSuccess({
+      originalUrl: url.originalUrl,
+      shortCode: url.shortCode,
+    });
+    return withCorsHeaders(request, response);
   } catch (error) {
     console.error("Redirect API error:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    const response = apiInternalError("Internal server error");
+    return withCorsHeaders(request, response);
   }
+}
+
+export async function OPTIONS(request: NextRequest) {
+  return handleCorsPreFlight(request);
 }
