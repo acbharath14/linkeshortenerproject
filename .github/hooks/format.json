@@ -1,0 +1,16 @@
+{
+    "version": "2.0.0",
+    "hooks": {
+        "postToolUse":  {
+            "type": "command", 
+                
+            "prettier": "prettier --write .",
+            "eslint": "eslint . --fix",
+            "semi": true,
+            "singleQuote": true,
+            "trailingComma": "es5"
+        },
+        "pre-commit": "prettier --write . && eslint . --fix",
+        "pre-push": "npm run test" 
+    }
+}
